@@ -70,6 +70,12 @@ that differ from whats in defaults.yaml
     'Suse': {
         'Subsystem': 'sftp /usr/lib/ssh/sftp-server',
     },
+    'Debian': {
+        'Subsystem': 'sftp /usr/lib/openssh/sftp-server',
+    },
+    'Arch': {
+        'Subsystem': 'sftp /usr/lib/ssh/sftp-server',
+    }
     'default': {}
   }
   , grain="os_family"
