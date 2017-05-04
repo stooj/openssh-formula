@@ -1,4 +1,9 @@
 sshd_config:
+  # This keyword is totally optional
+  ConfigBanner: |
+    # Alternative banner for the config file
+    # (Indented) hash signs lose their special meaning here
+    # and the lines will be written as-is.
   Port: 22
   Protocol: 2
   HostKey:
@@ -8,7 +13,7 @@ sshd_config:
     - /etc/ssh/ssh_host_ed25519_key
   UsePrivilegeSeparation: 'yes'
   KeyRegenerationInterval: 3600
-  ServerKeyBits: 768
+  ServerKeyBits: 1024
   SyslogFacility: AUTH
   LogLevel: INFO
   ClientAliveInterval: 0
@@ -29,9 +34,10 @@ sshd_config:
   PermitEmptyPasswords: 'no'
   ChallengeResponseAuthentication: 'no'
   AuthenticationMethods: 'publickey,keyboard-interactive'
-  X11Forwarding: 'yes'
+  AuthorizedKeysFile: '%h/.ssh/authorized_keys'
+  X11Forwarding: 'no'
   X11DisplayOffset: 10
-  PrintMotd: 'no'
+  PrintMotd: 'yes'
   PrintLastLog: 'yes'
   TCPKeepAlive: 'yes'
   AcceptEnv: "LANG LC_*"
@@ -52,10 +58,37 @@ sshd_config:
         AllowTcpForwarding: no
         ForceCommand: internal-sftp
   # Check `man sshd_config` for supported KexAlgorithms, Ciphers and MACs first.
-  KexAlgorithms: 'diffie-hellman-group14-sha1,diffie-hellman-group1-sha1'
-  Ciphers: 'aes128-ctr,aes256-ctr'
-  MACs: 'hmac-sha1'
+  # You can specify KexAlgorithms, Ciphers and MACs as both key or a list.
+  # The configuration given in the example below is based on:
+  # https://stribika.github.io/2015/01/04/secure-secure-shell.html
+  #KexAlgorithms: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256'
+  #Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
+  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com'
+  KexAlgorithms:
+    - 'curve25519-sha256@libssh.org'
+    - 'diffie-hellman-group-exchange-sha256'
+  Ciphers:
+    - 'chacha20-poly1305@openssh.com'
+    - 'aes256-gcm@openssh.com'
+    - 'aes128-gcm@openssh.com'
+    - 'aes256-ctr'
+    - 'aes192-ctr'
+    - 'aes128-ctr'
+  MACs:
+    - 'hmac-sha2-512-etm@openssh.com'
+    - 'hmac-sha2-256-etm@openssh.com'
+    - 'hmac-ripemd160-etm@openssh.com'
+    - 'umac-128-etm@openssh.com'
+    - 'hmac-sha2-512'
+    - 'hmac-sha2-256'
+    - 'hmac-ripemd160'
+    - 'umac-128@openssh.com'
 
+# Warning! You should generally NOT NEED to set ssh_config. Setting ssh_config
+# pillar will overwrite the defaults of your distribution's SSH client. This
+# will also force the default configuration for all the SSH clients on the
+# machine. This can break SSH connections with servers using older versions of
+# openssh. Please make sure you understand the implication of different settings
 ssh_config:
   StrictHostKeyChecking: no
   ForwardAgent: no
@@ -78,24 +111,74 @@ ssh_config:
   TunnelDevice: 'any:any'
   PermitLocalCommand: 'no'
   VisualHostKey: 'no'
+  # Check `man ssh_config` for supported KexAlgorithms, Ciphers and MACs first.
+  # WARNING! Please make sure you understand the implications of the below
+  # settings. The examples provided below might break your connection to older /
+  # legacy openssh servers.
+  # The configuration given in the example below is based on:
+  # https://stribika.github.io/2015/01/04/secure-secure-shell.html
+  # You can specify KexAlgorithms, Ciphers and MACs as both key or a list.
+  #KexAlgorithms: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1'
+  #Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
+  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com'
+  KexAlgorithms:
+    - 'curve25519-sha256@libssh.org'
+    - 'diffie-hellman-group-exchange-sha256'
+    - 'diffie-hellman-group-exchange-sha1'
+    - 'diffie-hellman-group14-sha1'
+  Ciphers:
+    - 'chacha20-poly1305@openssh.com'
+    - 'aes256-gcm@openssh.com'
+    - 'aes128-gcm@openssh.com'
+    - 'aes256-ctr'
+    - 'aes192-ctr'
+    - 'aes128-ctr'
+  MACs:
+    - 'hmac-sha2-512-etm@openssh.com'
+    - 'hmac-sha2-256-etm@openssh.com'
+    - 'hmac-ripemd160-etm@openssh.com'
+    - 'umac-128-etm@openssh.com'
+    - 'hmac-sha2-512'
+    - 'hmac-sha2-256'
+    - 'hmac-ripemd160'
+    - 'umac-128@openssh.com'
+
 
 openssh:
+  # Controls if SSHD should be enabled/started
+  sshd_enable: true
   auth:
     joe-valid-ssh-key-desktop:
       - user: joe
         present: True
         enc: ssh-rsa
         comment: main key - desktop
+        source: salt://ssh_keys/joe.desktop.pub
     joe-valid-ssh-key-notebook:
       - user: joe
         present: True
         enc: ssh-rsa
         comment: main key - notebook
+        source: salt://ssh_keys/joe.netbook.pub
     joe-non-valid-ssh-key:
       - user: joe
         present: False
         enc: ssh-rsa
         comment: obsolete key - removed
+        source: salt://ssh_keys/joe.no-valid.pub
+  # Maps users to source files
+  # Designed to play nice with ext_pillar
+  # salt.states.ssh_auth: If source is set, comment and enc will be ignored
+  auth_map:
+    personal_keys:  # store name
+      source: salt://ssh_keys
+      users:
+        joe:
+          joe.desktop: {}
+          joe.netbook:
+            options: []  # see salt.states.ssh_auth.present
+          joe.no-valid:
+            present: False
 
   generate_dsa_keys: False
   absent_dsa_keys: False
@@ -121,6 +204,8 @@ openssh:
 
   generate_rsa_keys: False
   generate_rsa_size: 4096
+  # Will remove the old key if it is to short and generate a new one.
+  enforce_rsa_size: False
   absent_rsa_keys: False
   provide_rsa_keys: False
   rsa:

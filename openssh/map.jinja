@@ -10,7 +10,7 @@ that differ from whats in defaults.yaml
       'server': 'openssh',
       'client': 'openssh',
       'service': 'sshd',
-      'dig_pkg': 'bind-utils',
+      'dig_pkg': 'bind-tools',
     },
     'Debian': {
       'server': 'openssh-server',
@@ -20,11 +20,13 @@ that differ from whats in defaults.yaml
     'FreeBSD': {
       'service': 'sshd',
       'dig_pkg': 'bind-tools',
-      'root_group': 'wheel',
+      'sshd_config_group': 'wheel',
+      'ssh_config_group': 'wheel',
     },
     'OpenBSD': {
       'service': 'sshd',
-      'root_group': 'wheel',
+      'sshd_config_group': 'wheel',
+      'ssh_config_group': 'wheel',
     },
     'Gentoo': {
       'server': 'net-misc/openssh',
@@ -70,12 +72,16 @@ that differ from whats in defaults.yaml
     'Suse': {
         'Subsystem': 'sftp /usr/lib/ssh/sftp-server',
     },
-    'Debian': {
-        'Subsystem': 'sftp /usr/lib/openssh/sftp-server',
-    },
     'Arch': {
         'Subsystem': 'sftp /usr/lib/ssh/sftp-server',
     },
+    'RedHat': {
+        'Subsystem': 'sftp /usr/libexec/openssh/sftp-server',
+    },
+    'default': {}
+  }
+  , grain="os_family"
+  , merge=salt['pillar.get']('sshd_config:lookup'))
     'default': {}
   }
   , grain="os_family"
