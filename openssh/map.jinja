@@ -82,10 +82,6 @@ that differ from whats in defaults.yaml
   }
   , grain="os_family"
   , merge=salt['pillar.get']('sshd_config:lookup'))
-    'default': {}
-  }
-  , grain="os_family"
-  , merge=salt['pillar.get']('sshd_config:lookup'))
 %}
 
 
