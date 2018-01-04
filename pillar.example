@@ -11,7 +11,7 @@ sshd_config:
     - /etc/ssh/ssh_host_dsa_key
     - /etc/ssh/ssh_host_ecdsa_key
     - /etc/ssh/ssh_host_ed25519_key
-  UsePrivilegeSeparation: 'yes'
+  UsePrivilegeSeparation: 'sandbox'
   KeyRegenerationInterval: 3600
   ServerKeyBits: 1024
   SyslogFacility: AUTH
@@ -44,10 +44,33 @@ sshd_config:
   Subsystem: "sftp /usr/lib/openssh/sftp-server"
   UsePAM: 'yes'
   UseDNS: 'yes'
+  # set as string
   AllowUsers: 'vader@10.0.0.1 maul@evil.com sidious luke'
+  # or set as list
+  AllowUsers:
+    - vader@10.0.0.1
+    - maul@evil.com
+    - sidious
+    - luke
+  # set as string
   DenyUsers: 'yoda chewbaca@112.10.21.1'
+  # or set as list
+  DenyUsers:
+    - yoda
+    - chewbaca@112.10.21.1
+  # set as string
   AllowGroups: 'wheel staff imperial'
+  # or set as list
+  AllowGroups:
+    - wheel
+    - staff
+    - imperial
+  # set as string
   DenyGroups: 'rebel'
+  # or set as list
+  DenyGroups:
+    - rebel
+    - badcompany
   matches:
     sftp_chroot:
       type:
@@ -57,13 +80,45 @@ sshd_config:
         X11Forwarding: no
         AllowTcpForwarding: no
         ForceCommand: internal-sftp
+    # Supports complex compound matches in Match criteria. For example, be able
+    # to match against multiple Users for a given Match, or be able to match
+    # against address ranges. Or Groups. Or any combination thereof.
+    #
+    # Support for matching users can take one of several different appearances
+    # in pillar data:
+    match_1:
+      type:
+        User: one_user
+      options:
+        ChrootDirectory: /ex/%u
+    match_2:
+      type:
+        User:
+          - jim
+          - bob
+          - sally
+      options:
+        ChrootDirectory: /ex/%u
+    # Note the syntax of match_3. By using empty dicts for each user, we can
+    # leverage Salt's pillar mergine. If we use simple lists, we cannot do
+    # this; Salt can't merge simple lists, because it doesn't know what order
+    # they ought to be in.
+    match_3:
+      type:
+        User:
+          jim: ~
+          bob: ~
+          sally: ~
+      options:
+        ChrootDirectory: /ex/%u
+
   # Check `man sshd_config` for supported KexAlgorithms, Ciphers and MACs first.
   # You can specify KexAlgorithms, Ciphers and MACs as both key or a list.
   # The configuration given in the example below is based on:
   # https://stribika.github.io/2015/01/04/secure-secure-shell.html
   #KexAlgorithms: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256'
   #Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
-  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com'
+  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
   KexAlgorithms:
     - 'curve25519-sha256@libssh.org'
     - 'diffie-hellman-group-exchange-sha256'
@@ -77,11 +132,9 @@ sshd_config:
   MACs:
     - 'hmac-sha2-512-etm@openssh.com'
     - 'hmac-sha2-256-etm@openssh.com'
-    - 'hmac-ripemd160-etm@openssh.com'
     - 'umac-128-etm@openssh.com'
     - 'hmac-sha2-512'
     - 'hmac-sha2-256'
-    - 'hmac-ripemd160'
     - 'umac-128@openssh.com'
 
 # Warning! You should generally NOT NEED to set ssh_config. Setting ssh_config
@@ -120,7 +173,7 @@ ssh_config:
   # You can specify KexAlgorithms, Ciphers and MACs as both key or a list.
   #KexAlgorithms: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1'
   #Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
-  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com'
+  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
   KexAlgorithms:
     - 'curve25519-sha256@libssh.org'
     - 'diffie-hellman-group-exchange-sha256'
@@ -136,15 +189,17 @@ ssh_config:
   MACs:
     - 'hmac-sha2-512-etm@openssh.com'
     - 'hmac-sha2-256-etm@openssh.com'
-    - 'hmac-ripemd160-etm@openssh.com'
     - 'umac-128-etm@openssh.com'
     - 'hmac-sha2-512'
     - 'hmac-sha2-256'
-    - 'hmac-ripemd160'
     - 'umac-128@openssh.com'
 
 
 openssh:
+  # Instead of adding a custom banner file you can set it in pillar
+  banner_string: |
+    Welcome to {{ grains['id'] }}!
+
   # Controls if SSHD should be enabled/started
   sshd_enable: true
   auth:
@@ -231,7 +286,7 @@ openssh:
     # The next 2 settings restrict the set of minions that will be added in
     # the generated ssh_known_hosts files (the default is to match all minions)
     target: '*'
-    expr_form: 'glob'
+    tgt_type: 'glob'
     # Name of mining functions used to gather public keys and hostnames
     # (the default values are shown here)
     mine_keys_function: public_ssh_host_keys
@@ -241,6 +296,17 @@ openssh:
     aliases:
       - cname-to-minion.example.org
       - alias.example.org
+    # Includes short hostnames derived from the FQDN
+    # (host.example.test -> host)
+    # (Deactivated by default, because there can be collisions!)
+    hostnames: False
+    #hostnames:
+    # Restrict wich hosts you want to use via their hostname
+    # (i.e. ssh user@host instead of ssh user@host.example.com)
+    #  target: '*'  # Defaults to "*.{}".format(grains['domain']) with a fallback to '*'
+    #  tgt_type: 'glob'
+    # To activate the defaults you can just set an empty dict.
+    #hostnames: {}
 
   # specify DH parameters (see /etc/ssh/moduli)
   moduli: |
