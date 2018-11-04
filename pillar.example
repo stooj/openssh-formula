@@ -143,62 +143,68 @@ sshd_config:
 # machine. This can break SSH connections with servers using older versions of
 # openssh. Please make sure you understand the implication of different settings
 ssh_config:
-  StrictHostKeyChecking: no
-  ForwardAgent: no
-  ForwardX11: no
-  RhostsRSAAuthentication: no
-  RSAAuthentication: yes
-  PasswordAuthentication: yes
-  HostbasedAuthentication: no
-  GSSAPIAuthentication: no
-  GSSAPIDelegateCredentials: no
-  BatchMode: 'yes'
-  CheckHostIP: 'yes'
-  AddressFamily: 'any'
-  ConnectTimeout: 0
-  IdentityFile: '~/.ssh/id_rsa'
-  Port: 22
-  Protocol: 2
-  Cipher: '3des'
-  Tunnel: 'no'
-  TunnelDevice: 'any:any'
-  PermitLocalCommand: 'no'
-  VisualHostKey: 'no'
-  # Check `man ssh_config` for supported KexAlgorithms, Ciphers and MACs first.
-  # WARNING! Please make sure you understand the implications of the below
-  # settings. The examples provided below might break your connection to older /
-  # legacy openssh servers.
-  # The configuration given in the example below is based on:
-  # https://stribika.github.io/2015/01/04/secure-secure-shell.html
-  # You can specify KexAlgorithms, Ciphers and MACs as both key or a list.
-  #KexAlgorithms: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1'
-  #Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
-  #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
-  KexAlgorithms:
-    - 'curve25519-sha256@libssh.org'
-    - 'diffie-hellman-group-exchange-sha256'
-    - 'diffie-hellman-group-exchange-sha1'
-    - 'diffie-hellman-group14-sha1'
-  Ciphers:
-    - 'chacha20-poly1305@openssh.com'
-    - 'aes256-gcm@openssh.com'
-    - 'aes128-gcm@openssh.com'
-    - 'aes256-ctr'
-    - 'aes192-ctr'
-    - 'aes128-ctr'
-  MACs:
-    - 'hmac-sha2-512-etm@openssh.com'
-    - 'hmac-sha2-256-etm@openssh.com'
-    - 'umac-128-etm@openssh.com'
-    - 'hmac-sha2-512'
-    - 'hmac-sha2-256'
-    - 'umac-128@openssh.com'
+  Hosts:
+    '*':
+      StrictHostKeyChecking: no
+      ForwardAgent: no
+      ForwardX11: no
+      RhostsRSAAuthentication: no
+      RSAAuthentication: yes
+      PasswordAuthentication: yes
+      HostbasedAuthentication: no
+      GSSAPIAuthentication: no
+      GSSAPIDelegateCredentials: no
+      BatchMode: 'yes'
+      CheckHostIP: 'yes'
+      AddressFamily: 'any'
+      ConnectTimeout: 0
+      IdentityFile: '~/.ssh/id_rsa'
+      Port: 22
+      Protocol: 2
+      Cipher: '3des'
+      Tunnel: 'no'
+      TunnelDevice: 'any:any'
+      PermitLocalCommand: 'no'
+      VisualHostKey: 'no'
+      # Check `man ssh_config` for supported KexAlgorithms, Ciphers and MACs first.
+      # WARNING! Please make sure you understand the implications of the below
+      # settings. The examples provided below might break your connection to older /
+      # legacy openssh servers.
+      # The configuration given in the example below is based on:
+      # https://stribika.github.io/2015/01/04/secure-secure-shell.html
+      # You can specify KexAlgorithms, Ciphers and MACs as both key or a list.
+      #KexAlgorithms: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1'
+      #Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
+      #MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
+      KexAlgorithms:
+        - 'curve25519-sha256@libssh.org'
+        - 'diffie-hellman-group-exchange-sha256'
+        - 'diffie-hellman-group-exchange-sha1'
+        - 'diffie-hellman-group14-sha1'
+      Ciphers:
+        - 'chacha20-poly1305@openssh.com'
+        - 'aes256-gcm@openssh.com'
+        - 'aes128-gcm@openssh.com'
+        - 'aes256-ctr'
+        - 'aes192-ctr'
+        - 'aes128-ctr'
+      MACs:
+        - 'hmac-sha2-512-etm@openssh.com'
+        - 'hmac-sha2-256-etm@openssh.com'
+        - 'umac-128-etm@openssh.com'
+        - 'hmac-sha2-512'
+        - 'hmac-sha2-256'
+        - 'umac-128@openssh.com'
 
 
 openssh:
   # Instead of adding a custom banner file you can set it in pillar
   banner_string: |
     Welcome to {{ grains['id'] }}!
+
+  # Set installed package version
+  server_version: latest
+  client_version: latest
 
   # Controls if SSHD should be enabled/started
   sshd_enable: true
@@ -303,10 +309,30 @@ openssh:
     #hostnames:
     # Restrict wich hosts you want to use via their hostname
     # (i.e. ssh user@host instead of ssh user@host.example.com)
-    #  target: '*'  # Defaults to "*.{}".format(grains['domain']) with a fallback to '*'
+    #  target: '*'  # Defaults to "*.{{ grains['domain']}}"
     #  tgt_type: 'glob'
     # To activate the defaults you can just set an empty dict.
     #hostnames: {}
+    # Include localhost, 127.0.0.1 and ::1 (default: False)
+    include_localhost: False
+    # Host keys fetched via salt-ssh
+    salt_ssh:
+      # The salt-ssh user
+      user: salt-master
+      # specify public host names of a minion
+      public_ssh_host_names:
+        minion.id:
+          - minion.id
+          - alias.of.minion.id
+      # specify public host keys of a minion
+      public_ssh_host_keys:
+        minion.id: |
+          ssh-rsa [...]
+          ssh-ed25519 [...]
+    # Here you can list keys for hosts which are not among your minions:
+    static:
+      github.com: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGm[...]'
+      gitlab.com: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bN[...]'
 
   # specify DH parameters (see /etc/ssh/moduli)
   moduli: |
